@@ -35,7 +35,7 @@
   /* ---------- HOME VIDEO LAYER (the one that shrinks) ---------- */
   #homeLayer{
     position:fixed;
-    top:0;left:0;width:100vw;height:100vh;
+    top:0;left:0;width:100vw;height:100vh;height:100dvh;
     z-index:40;
     overflow:hidden;
     background:#000;
@@ -124,7 +124,7 @@
   #scroller{position:relative;z-index:10}
   section{scroll-snap-align:start;scroll-snap-stop:always}
 
-  .hero{height:100vh;position:relative}
+  .hero{height:100vh;height:100svh;position:relative}
   /* docking target for the home video */
   #heroBox{
     position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
@@ -142,7 +142,7 @@
 
   /* ---------- PROJECT SECTION ---------- */
   .project{
-    height:100vh;position:relative;
+    height:100vh;height:100svh;position:relative;
     display:flex;align-items:center;justify-content:center;
   }
   .frame{
@@ -218,11 +218,56 @@
   #grain{position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.04;mix-blend-mode:screen;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
+  /* ===== TOUCH DEVICES: no hover, so reveal everything by default ===== */
+  @media (hover:none){
+    .frame .pname{opacity:1;transform:none}
+    .frame .pnum{opacity:.95;transform:none}
+    .frame .play{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    .frame .veil{opacity:.82}
+    .frame video, .frame img.thumb{transform:scale(1);filter:brightness(.94)}
+    .frame iframe{filter:brightness(.94)}
+    #sound:hover{opacity:.85}
+  }
+
+  /* ===== SMALL SCREENS (phones) ===== */
   @media (max-width:760px){
-    #topbar{padding:18px 20px}
-    .frame .caption{padding:20px 22px}
-    #heroBox{width:88vw}
-    .pindex{top:20px;left:22px}
+    #topbar{padding:15px 18px;align-items:center}
+    #topbar .brand{font-size:16px;max-width:46%;line-height:1}
+    #topbar .meta{font-size:9.5px;letter-spacing:.18em;line-height:1.7}
+    #topbar .meta .links{gap:13px;margin-top:3px}
+
+    #heroBox{width:90vw}
+    .scrollhint{bottom:30px}
+
+    #enter{font-size:clamp(30px,11vw,56px);bottom:11%}
+
+    .intro-corner.tl{top:18px;left:18px}
+    .intro-corner.tr{top:18px;right:18px}
+    .intro-corner.bl{bottom:18px;left:18px}
+    .intro-name{font-size:14px}
+    .intro-corner.tr.label, .intro-corner.bl.label{font-size:9px;letter-spacing:.18em}
+
+    .frame{width:94vw}
+    .frame .caption{padding:16px 18px;gap:12px}
+    .frame .pname{font-size:clamp(32px,9vw,52px)}
+    .frame .pnum{font-size:10px;letter-spacing:.18em}
+    .frame .play{width:62px;height:62px}
+    .frame .play svg{width:18px;height:18px}
+    .pindex{top:16px;left:18px;font-size:10px}
+
+    #sound{right:18px;bottom:18px;width:42px;height:42px}
+
+    #player .close{top:16px;right:16px;width:46px;height:46px}
+    #player .ptitle{top:20px;left:18px;font-size:15px;max-width:62%}
+
+    /* CV overlay on phones */
+    #cvPage .cv-inner{padding:40px 18px 90px}
+    #cvPage .cv-masthead h1{font-size:clamp(44px,13vw,72px)}
+    #cvPage .cv-role{font-size:10.5px;letter-spacing:.2em}
+    #cvPage .cv-profile{font-size:15px}
+    #cvPage .cv-xp h3, #cvPage .cv-edu h3{font-size:17px}
+    #cvPage .cv-top{flex-wrap:wrap;gap:4px}
+    #cvPage .when{flex-basis:100%}
   }
   /* ========== CV OVERLAY (in-page) ========== */
   #cvPage{
@@ -350,7 +395,7 @@
       Paris, FR
       <span class="links">
         <a href="#cv" id="cvOpen">CV</a>
-        <a href="/cdn-cgi/l/email-protection#ccbdb9a9a2b8a5a2a0a9a4aa8caba1ada5a0e2afa3a1">Contact</a>
+        <a href="/cdn-cgi/l/email-protection#532226363d273a3d3f363b3513343e323a3f7d303c3e">Contact</a>
       </span>
     </div>
   </header>
@@ -409,7 +454,7 @@
           <div class="cv-block">
             <div class="label">Contact</div>
             <div class="cv-contact">
-              <a href="/cdn-cgi/l/email-protection#e697938388928f888a838e80a6818b878f8ac885898b"><span class="__cf_email__" data-cfemail="4736322229332e292b222f2107202a262e2b6924282a">[email&#160;protected]</span></a>
+              <a href="/cdn-cgi/l/email-protection#5e2f2b3b302a3730323b36381e39333f3732703d3133"><span class="__cf_email__" data-cfemail="ff8e8a9a918b9691939a9799bf98929e9693d19c9092">[email&#160;protected]</span></a>
               <a href="tel:+33623801033">06 23 80 10 33</a>
               <span class="muted">24 ans · Permis A &amp; B (véhiculé)</span>
             </div>
