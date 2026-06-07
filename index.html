@@ -2,6 +2,897 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quentin Le Henaff — Directeur artistique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+<style>
+  :root{
+    --bg:#000;
+    --fg:#f2f0ec;
+    --dim:#8c8a85;
+    --line:rgba(242,240,236,.16);
+    --ease:cubic-bezier(.76,0,.24,1);
+    --enter-dur:1100ms;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--bg);color:var(--fg)}
+  body{
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  /* Lock scroll until entered */
+  body.locked{overflow:hidden;height:100vh}
+  html.entered{scroll-snap-type:y mandatory}
+  ::selection{background:var(--fg);color:#000}
+
+  .display{font-family:"Anton",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.01em;line-height:.9}
+  .label{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
+
+  /* ---------- HOME VIDEO LAYER (the one that shrinks) ---------- */
+  #homeLayer{
+    position:fixed;
+    top:0;left:0;width:100vw;height:100vh;
+    z-index:40;
+    overflow:hidden;
+    background:#000;
+    cursor:pointer;
+    transition:
+      top var(--enter-dur) var(--ease),
+      left var(--enter-dur) var(--ease),
+      width var(--enter-dur) var(--ease),
+      height var(--enter-dur) var(--ease),
+      border-radius var(--enter-dur) var(--ease);
+    will-change:top,left,width,height,transform;
+  }
+  #homeLayer video{
+    position:absolute;inset:0;width:100%;height:100%;
+    object-fit:cover;display:block;
+  }
+  #enter{
+    position:absolute;z-index:3;left:50%;top:auto;bottom:9%;
+    transform:translateX(-50%);
+    font-size:clamp(30px,5vw,72px);
+    color:var(--fg);
+    opacity:0;
+    transition:opacity 600ms ease, letter-spacing 600ms var(--ease), transform 600ms var(--ease);
+    pointer-events:none;
+    text-shadow:0 2px 40px rgba(0,0,0,.6);
+  }
+  /* hidden until .ready (added ~2.6s after load); then resting state, hover lifts it */
+  #homeLayer.intro.ready #enter{opacity:.9;pointer-events:auto;cursor:pointer}
+  #homeLayer.intro.ready #enter:hover{opacity:1;letter-spacing:.08em}
+  #enter::after{
+    content:"";position:absolute;left:0;right:0;bottom:-.16em;height:2px;
+    background:var(--fg);transform:scaleX(0);transform-origin:50%;
+    transition:transform 600ms var(--ease);
+  }
+  #homeLayer.intro.ready #enter:hover::after{transform:scaleX(.5)}
+  html.entered #enter{opacity:0 !important;pointer-events:none}
+  /* docked showreel stays clickable */
+  html.entered #homeLayer{cursor:pointer}
+
+  .intro-corner{
+    position:absolute;z-index:3;color:var(--fg);opacity:0;
+    transition:opacity 700ms ease;
+    pointer-events:none;
+  }
+  #homeLayer.intro.ready .intro-corner{opacity:.85}
+  html.entered .intro-corner{opacity:0}
+  .intro-corner.tl{top:30px;left:34px}
+  .intro-corner.tr{top:30px;right:34px;text-align:right}
+  .intro-corner.bl{bottom:30px;left:34px}
+  .intro-name{font-size:clamp(15px,1.5vw,20px);letter-spacing:.18em}
+
+  /* ---------- HEADER ---------- */
+  #topbar{
+    position:fixed;top:0;left:0;width:100%;z-index:60;
+    display:flex;align-items:flex-start;justify-content:space-between;
+    padding:26px 34px;
+    mix-blend-mode:difference;
+    opacity:0;transform:translateY(-12px);
+    transition:opacity 700ms ease 350ms, transform 800ms var(--ease) 350ms;
+    pointer-events:none;
+  }
+  html.entered #topbar{opacity:1;transform:none}
+  #topbar .brand{font-size:clamp(18px,2vw,30px)}
+  #topbar .meta{font-size:11px;letter-spacing:.26em;text-transform:uppercase;line-height:1.7;text-align:right;color:#fff}
+  #topbar .meta .links{display:flex;gap:16px;justify-content:flex-end;margin-top:2px}
+  #topbar a{color:inherit;text-decoration:none;pointer-events:auto;position:relative}
+  #topbar .links a::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform 380ms var(--ease)}
+  #topbar .links a:hover::after{transform:scaleX(1);transform-origin:left}
+
+  /* ---------- SOUND TOGGLE ---------- */
+  #sound{
+    position:fixed;z-index:70;right:26px;bottom:26px;
+    width:46px;height:46px;border-radius:50%;
+    border:1px solid var(--line);background:rgba(0,0,0,.32);
+    color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;transform:scale(.9);
+    transition:opacity 500ms ease, transform 500ms var(--ease), background 300ms ease;
+    backdrop-filter:blur(4px);
+  }
+  #sound.show{opacity:.85;pointer-events:auto;transform:none}
+  #sound:hover{background:rgba(255,255,255,.14);opacity:1}
+  #sound svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ---------- SCROLLER ---------- */
+  #scroller{position:relative;z-index:10}
+  section{scroll-snap-align:start;scroll-snap-stop:always}
+
+  .hero{height:100vh;position:relative}
+  /* docking target for the home video */
+  #heroBox{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:min(74vw,1180px);aspect-ratio:16/9;
+  }
+  .scrollhint{
+    position:absolute;left:50%;bottom:42px;transform:translateX(-50%);
+    z-index:11;opacity:0;transition:opacity 800ms ease 1200ms;
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+  }
+  html.entered .scrollhint{opacity:.8}
+  body.scrolled .scrollhint{opacity:0 !important;transition:opacity 400ms ease}
+  .scrollhint .bar{width:1px;height:46px;background:linear-gradient(var(--dim),transparent);animation:drop 1.8s var(--ease) infinite}
+  @keyframes drop{0%{transform:scaleY(0);transform-origin:top}40%{transform:scaleY(1);transform-origin:top}60%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+  /* ---------- PROJECT SECTION ---------- */
+  .project{
+    height:100vh;position:relative;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .frame{
+    position:relative;cursor:pointer;
+    width:min(90vw,1500px);aspect-ratio:16/9;
+    overflow:hidden;background:#0a0a0a;
+    transition:transform 900ms var(--ease);
+  }
+  .frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+    transition:transform 1200ms var(--ease), filter 700ms ease;transform:scale(1.04);filter:brightness(.82)}
+  .frame:hover video{transform:scale(1);filter:brightness(.96)}
+  .frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;display:block;filter:brightness(.85);transition:filter 700ms ease}
+  .frame:hover iframe{filter:brightness(.98)}
+  .frame img.thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+    transition:transform 1200ms var(--ease), filter 700ms ease;transform:scale(1.04);filter:brightness(.82)}
+  .frame:hover img.thumb{transform:scale(1);filter:brightness(.96)}
+  .frame .ytlink{position:absolute;inset:0;z-index:4;display:block;cursor:pointer}
+  .frame .veil{position:absolute;inset:0;z-index:2;
+    background:linear-gradient(transparent 45%, rgba(0,0,0,.55));
+    opacity:.55;transition:opacity 600ms ease}
+  .frame:hover .veil{opacity:.85}
+  .frame .play{
+    position:absolute;z-index:3;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);
+    width:84px;height:84px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.7);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;transition:opacity 500ms ease, transform 600ms var(--ease);
+    backdrop-filter:blur(2px);
+  }
+  .frame:hover .play{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .frame .play svg{width:22px;height:22px;margin-left:3px;fill:#fff}
+
+  .frame .caption{
+    position:absolute;z-index:3;left:0;bottom:0;width:100%;
+    padding:30px 34px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+    pointer-events:none;
+  }
+  .frame .pname{
+    font-size:clamp(40px,7vw,116px);
+    transform:translateY(18px);opacity:0;
+    transition:opacity 600ms var(--ease), transform 700ms var(--ease);
+  }
+  .frame:hover .pname{opacity:1;transform:none}
+  .frame .pnum{font-size:12px;letter-spacing:.26em;color:var(--fg);opacity:.6;flex:0 0 auto;
+    transform:translateY(10px);transition:opacity 600ms ease, transform 700ms var(--ease)}
+  .frame:hover .pnum{opacity:.95;transform:none}
+
+  /* static index shown at top-left of each project (always faintly visible) */
+  .pindex{position:absolute;z-index:3;top:30px;left:34px;font-size:11px;letter-spacing:.26em;color:var(--dim);text-transform:uppercase}
+
+  /* ---------- FULLSCREEN PLAYER ---------- */
+  #player{
+    position:fixed;inset:0;z-index:100;background:#000;
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;visibility:hidden;transition:opacity 500ms ease;
+  }
+  #player.open{opacity:1;visibility:visible}
+  #player video{width:100%;height:100%;object-fit:contain;background:#000}
+  #player iframe{width:100%;height:100%;border:0;background:#000;display:none}
+  #player .close{
+    position:absolute;top:26px;right:30px;z-index:2;
+    width:54px;height:54px;border-radius:50%;border:1px solid var(--line);
+    background:rgba(0,0,0,.4);color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background 300ms ease, transform 300ms var(--ease);
+  }
+  #player .close:hover{background:rgba(255,255,255,.12);transform:rotate(90deg)}
+  #player .close svg{width:20px;height:20px;stroke:#fff;stroke-width:1.6}
+  #player .ptitle{position:absolute;top:30px;left:34px;z-index:2;font-size:clamp(16px,1.6vw,22px);opacity:.9}
+  #player .ploading{position:absolute;z-index:1;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+
+  /* grain / texture */
+  #grain{position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.04;mix-blend-mode:screen;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  @media (max-width:760px){
+    #topbar{padding:18px 20px}
+    .frame .caption{padding:20px 22px}
+    #heroBox{width:88vw}
+    .pindex{top:20px;left:22px}
+  }
+  /* ========== CV OVERLAY (in-page) ========== */
+  #cvPage{
+    --faint:#54524e;
+    position:fixed;inset:0;z-index:120;
+    background:var(--bg);color:var(--fg);
+    overflow-y:auto;overflow-x:hidden;
+    opacity:0;visibility:hidden;
+    transition:opacity 480ms var(--ease);
+    -webkit-overflow-scrolling:touch;
+  }
+  #cvPage.open{opacity:1;visibility:visible}
+  #cvPage .cv-inner{max-width:1080px;margin:0 auto;padding:54px 28px 120px}
+
+  #cvPage .cv-toolbar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:30px}
+  #cvPage .cv-back, #cvPage .cv-print{
+    font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);
+    background:none;border:0;cursor:pointer;font-family:inherit;
+    display:inline-flex;align-items:center;gap:9px;transition:color 280ms var(--ease),border-color 280ms var(--ease)}
+  #cvPage .cv-back:hover{color:var(--fg)}
+  #cvPage .cv-back .arrow{font-size:14px;letter-spacing:0}
+  #cvPage .cv-print{border:1px solid var(--line);padding:11px 18px;border-radius:999px}
+  #cvPage .cv-print:hover{border-color:var(--fg);color:var(--fg)}
+
+  #cvPage .cv-masthead{border-top:1px solid var(--fg);padding-top:26px;margin-bottom:46px;
+    display:grid;grid-template-columns:1fr auto;align-items:end;gap:30px}
+  #cvPage .cv-masthead h1{font-size:clamp(50px,8vw,118px)}
+  #cvPage .cv-role{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);text-align:right;line-height:2}
+  #cvPage .cv-role .now{color:var(--fg)}
+
+  #cvPage .cv-grid{display:grid;grid-template-columns:300px 1fr;gap:0}
+  #cvPage .cv-rail{padding-right:42px;border-right:1px solid var(--line)}
+  #cvPage .cv-body{padding-left:46px}
+  #cvPage .cv-block{margin-bottom:34px}
+  #cvPage .cv-block:last-child{margin-bottom:0}
+  #cvPage .label{margin-bottom:16px;padding-bottom:9px;border-bottom:1px solid var(--line);display:block}
+
+  #cvPage .cv-contact{display:flex;flex-direction:column;gap:7px;font-size:13.5px}
+  #cvPage .cv-contact a{text-decoration:none;color:var(--fg);width:max-content;position:relative}
+  #cvPage .cv-contact a::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform 320ms var(--ease)}
+  #cvPage .cv-contact a:hover::after{transform:scaleX(1)}
+  #cvPage .cv-contact .muted{color:var(--dim);font-size:12.5px}
+
+  #cvPage .cv-skillgroup{margin-bottom:18px}
+  #cvPage .cv-skillgroup:last-child{margin-bottom:0}
+  #cvPage .cv-skillgroup h4{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg);margin-bottom:7px;font-weight:600}
+  #cvPage .cv-tags{display:flex;flex-wrap:wrap;gap:6px}
+  #cvPage .cv-tag{font-size:11.5px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:4px 11px;white-space:nowrap}
+
+  #cvPage .cv-da{list-style:none}
+  #cvPage .cv-da li{font-size:13px;color:var(--fg);margin-bottom:8px;padding-left:15px;position:relative}
+  #cvPage .cv-da li::before{content:"";position:absolute;left:0;top:9px;width:5px;height:1px;background:var(--dim)}
+  #cvPage .cv-da li b{font-weight:600}
+  #cvPage .cv-da li span{color:var(--dim)}
+
+  #cvPage .cv-profile{font-size:16.5px;line-height:1.62;color:var(--fg);max-width:60ch;margin-bottom:40px}
+  #cvPage .cv-profile .lead{color:var(--dim)}
+
+  #cvPage .cv-sec{font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin:0 0 24px;padding-bottom:11px;border-bottom:1px solid var(--fg);font-weight:400}
+  #cvPage .cv-sec:not(:first-child){margin-top:48px}
+
+  #cvPage .cv-xp{padding-bottom:30px;margin-bottom:30px;border-bottom:1px solid var(--line)}
+  #cvPage .cv-xp:last-of-type{border-bottom:0}
+  #cvPage .cv-top{display:flex;justify-content:space-between;align-items:baseline;gap:20px;margin-bottom:4px}
+  #cvPage .cv-xp h3, #cvPage .cv-edu h3{font-size:19px;font-weight:600;letter-spacing:.005em}
+  #cvPage .when{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);white-space:nowrap;flex:0 0 auto}
+  #cvPage .org{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:3px 0 13px}
+  #cvPage .cv-xp ul{list-style:none}
+  #cvPage .cv-xp li{font-size:14px;line-height:1.5;color:#cfcdc8;padding-left:17px;position:relative;margin-bottom:7px;max-width:68ch}
+  #cvPage .cv-xp li::before{content:"";position:absolute;left:0;top:10px;width:7px;height:1px;background:var(--faint)}
+
+  #cvPage .cv-edu{display:flex;flex-direction:column;gap:20px}
+  #cvPage .cv-edu h3{font-size:16px}
+  #cvPage .cv-edu .org{margin:3px 0 7px}
+  #cvPage .cv-edu p{font-size:13.5px;color:#cfcdc8;max-width:64ch}
+
+  @media (max-width:820px){
+    #cvPage .cv-grid{grid-template-columns:1fr}
+    #cvPage .cv-rail{padding-right:0;border-right:0;border-bottom:1px solid var(--line);padding-bottom:34px;margin-bottom:34px}
+    #cvPage .cv-body{padding-left:0}
+    #cvPage .cv-masthead{grid-template-columns:1fr;align-items:start;gap:14px}
+    #cvPage .cv-role{text-align:left}
+  }
+
+  /* ---- PRINT: only the CV, black on white ---- */
+  @page{size:A4;margin:14mm}
+  @media print{
+    body.cvopen > *:not(#cvPage){display:none !important}
+    body.cvopen #cvPage{position:static !important;opacity:1 !important;visibility:visible !important;overflow:visible !important;background:#fff !important;color:#111 !important}
+    body.cvopen #cvPage .cv-inner{padding:0;max-width:none}
+    body.cvopen #cvPage .cv-toolbar{display:none !important}
+    body.cvopen #cvPage .display{color:#111 !important}
+    body.cvopen #cvPage{font-size:10.4px;line-height:1.4}
+    body.cvopen #cvPage .cv-masthead{border-top-color:#111;margin-bottom:18px;padding-top:14px}
+    body.cvopen #cvPage .cv-masthead h1{font-size:46px;color:#111}
+    body.cvopen #cvPage .cv-role, body.cvopen #cvPage .label, body.cvopen #cvPage .when,
+    body.cvopen #cvPage .org, body.cvopen #cvPage .cv-contact .muted, body.cvopen #cvPage .cv-skillgroup h4{color:#444 !important}
+    body.cvopen #cvPage .cv-role .now{color:#111 !important}
+    body.cvopen #cvPage .cv-grid{grid-template-columns:230px 1fr}
+    body.cvopen #cvPage .cv-rail{border-right-color:#ccc;padding-right:24px}
+    body.cvopen #cvPage .cv-body{padding-left:28px}
+    body.cvopen #cvPage .label{border-bottom-color:#ccc}
+    body.cvopen #cvPage .cv-sec{color:#444 !important;border-bottom-color:#111;margin-top:18px}
+    body.cvopen #cvPage .cv-profile{font-size:11px;color:#111;margin-bottom:18px}
+    body.cvopen #cvPage .cv-profile .lead{color:#444}
+    body.cvopen #cvPage .cv-tag{color:#333;border-color:#ccc}
+    body.cvopen #cvPage .cv-da li, body.cvopen #cvPage .cv-contact a,
+    body.cvopen #cvPage .cv-xp h3, body.cvopen #cvPage .cv-edu h3{color:#111 !important}
+    body.cvopen #cvPage .cv-da li span{color:#555 !important}
+    body.cvopen #cvPage .cv-xp li, body.cvopen #cvPage .cv-edu p{color:#222 !important}
+    body.cvopen #cvPage .cv-xp li::before, body.cvopen #cvPage .cv-da li::before{background:#999}
+    body.cvopen #cvPage .cv-xp{padding-bottom:12px;margin-bottom:12px;border-bottom-color:#ddd;break-inside:avoid}
+    body.cvopen #cvPage .cv-block{margin-bottom:18px}
+    body.cvopen #cvPage .cv-contact a::after{display:none}
+  }
+</style>
+</head>
+<body class="locked">
+
+  <!-- ===== HEADER ===== -->
+  <header id="topbar">
+    <div class="brand display">Quentin Le Henaff</div>
+    <div class="meta">
+      Directeur artistique<br />
+      Paris, FR
+      <span class="links">
+        <a href="#cv" id="cvOpen">CV</a>
+        <a href="/cdn-cgi/l/email-protection#ccbdb9a9a2b8a5a2a0a9a4aa8caba1ada5a0e2afa3a1">Contact</a>
+      </span>
+    </div>
+  </header>
+
+  <!-- ===== HOME VIDEO (shrinks on enter) ===== -->
+  <div id="homeLayer" class="intro">
+    <video id="homeVid" muted autoplay loop playsinline preload="auto"></video>
+    <div class="intro-corner tl"><span class="intro-name display">Quentin Le Henaff</span></div>
+    <div class="intro-corner tr label">Directeur artistique — Paris</div>
+    <div class="intro-corner bl label">Showreel ’26</div>
+    <div id="enter" class="display">Entrer</div>
+  </div>
+
+  <!-- ===== SOUND TOGGLE ===== -->
+  <button id="sound" aria-label="Activer le son" title="Son"></button>
+
+  <!-- ===== SCROLLER ===== -->
+  <main id="scroller">
+    <section class="hero">
+      <div id="heroBox"></div>
+      <div class="scrollhint"><span class="label">Scroll</span><span class="bar"></span></div>
+    </section>
+    <!-- project sections injected here -->
+  </main>
+
+  <!-- ===== FULLSCREEN PLAYER ===== -->
+  <div id="player">
+    <div class="ptitle display"></div>
+    <div class="ploading">Chargement…</div>
+    <video id="playerVid" playsinline controls></video>
+    <iframe id="playerFrame" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+    <button class="close" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor"/></svg>
+    </button>
+  </div>
+
+  <!-- ===== CV OVERLAY (same page, no extra file) ===== -->
+  <div id="cvPage" aria-hidden="true">
+    <div class="cv-inner">
+      <div class="cv-toolbar">
+        <button class="cv-back" id="cvClose"><span class="arrow">←</span> Portfolio</button>
+        <button class="cv-print" id="cvPrint">Télécharger en PDF</button>
+      </div>
+
+      <header class="cv-masthead">
+        <h1 class="display">Quentin<br />Le Henaff</h1>
+        <div class="cv-role">
+          <span class="now">Directeur Artistique</span><br />
+          En alternance · Master<br />
+          Le Pré-Saint-Gervais (93)
+        </div>
+      </header>
+
+      <div class="cv-grid">
+        <aside class="cv-rail">
+          <div class="cv-block">
+            <div class="label">Contact</div>
+            <div class="cv-contact">
+              <a href="/cdn-cgi/l/email-protection#e697938388928f888a838e80a6818b878f8ac885898b"><span class="__cf_email__" data-cfemail="4736322229332e292b222f2107202a262e2b6924282a">[email&#160;protected]</span></a>
+              <a href="tel:+33623801033">06 23 80 10 33</a>
+              <span class="muted">24 ans · Permis A &amp; B (véhiculé)</span>
+            </div>
+          </div>
+
+          <div class="cv-block">
+            <div class="label">Outils</div>
+            <div class="cv-skillgroup">
+              <h4>Post-production</h4>
+              <div class="cv-tags">
+                <span class="cv-tag">Premiere Pro</span>
+                <span class="cv-tag">DaVinci Resolve</span>
+                <span class="cv-tag">Avid Media Composer</span>
+                <span class="cv-tag">Lightroom</span>
+              </div>
+            </div>
+            <div class="cv-skillgroup">
+              <h4>Design &amp; direction visuelle</h4>
+              <div class="cv-tags">
+                <span class="cv-tag">Photoshop</span>
+                <span class="cv-tag">After Effects</span>
+                <span class="cv-tag">Figma</span>
+                <span class="cv-tag">Framer</span>
+              </div>
+            </div>
+            <div class="cv-skillgroup">
+              <h4>IA générative</h4>
+              <div class="cv-tags">
+                <span class="cv-tag">Claude &amp; Claude Design</span>
+                <span class="cv-tag">Midjourney</span>
+                <span class="cv-tag">Flora</span>
+                <span class="cv-tag">Gen-AI Video</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="cv-block">
+            <div class="label">Compétences DA</div>
+            <ul class="cv-da">
+              <li><b>Direction de l'image</b> <span>— scénographie, esthétique et gestion de la lumière en plateau.</span></li>
+              <li><b>Storytelling</b> <span>— rythme visuel, cadrage et narration éditoriale.</span></li>
+              <li><b>Gestion globale</b> <span>— budgets, devis, logistique de tournage, relation et livraison client.</span></li>
+            </ul>
+          </div>
+
+          <div class="cv-block">
+            <div class="label">Langues</div>
+            <ul class="cv-da">
+              <li>Anglais <span>— avancé (professionnel)</span></li>
+              <li>Espagnol <span>— scolaire</span></li>
+            </ul>
+          </div>
+
+          <div class="cv-block">
+            <div class="label">Centres d'intérêt</div>
+            <ul class="cv-da">
+              <li>Cinéma <span>(titre certifié)</span></li>
+              <li>Photographie numérique &amp; argentique</li>
+              <li>Surf, escalade, judo</li>
+              <li>Voyages <span>— Islande, Indonésie, Écosse…</span></li>
+            </ul>
+          </div>
+        </aside>
+
+        <main class="cv-body">
+          <p class="cv-profile">
+            Fort d'un parcours unissant gestion de production pour de grands groupes, direction de la photographie et montage certifié cinéma, je maîtrise la chaîne visuelle de l'idée à la post-production. <span class="lead">Ma double compétence créative et technique, enrichie par les outils de design actuels (Figma, Framer) et les IA génératives, me permet de concevoir des concepts esthétiques puissants et d'en piloter la réalisation de bout en bout. Je recherche un Master en Direction Artistique en alternance pour mettre cette vision globale au service de vos projets.</span>
+          </p>
+
+          <h2 class="cv-sec">Expériences</h2>
+
+          <article class="cv-xp">
+            <div class="cv-top">
+              <h3>Directeur Artistique &amp; Réalisateur / Monteur</h3>
+              <span class="when">Depuis sept. 2023</span>
+            </div>
+            <div class="org">Freelance · Paris</div>
+            <ul>
+              <li>Conception visuelle, réalisation, captation et photographie pour des projets de communication, clips, interviews et événementiels de marques.</li>
+              <li>Intégration d'outils de design (Figma, Framer) et de génération d'images pour affiner le prototypage visuel et les propositions de concepts.</li>
+            </ul>
+          </article>
+
+          <article class="cv-xp">
+            <div class="cv-top">
+              <h3>Monteur Vidéaste &amp; Cadreur</h3>
+              <span class="when">Sept. 2024 – Sept. 2025</span>
+            </div>
+            <div class="org">Alternance · MACOM (société de presse)</div>
+            <ul>
+              <li>Responsabilité globale de la production vidéo, du brief journalistique initial jusqu'à la livraison client finale.</li>
+              <li>Gestion technique et esthétique sur le terrain : scénographie, direction et mise en place de la lumière, captation sonore et cadrage.</li>
+              <li>Post-production complète — montage rythmique, étalonnage, habillage graphique — pour des interviews et formats éditoriaux.</li>
+            </ul>
+          </article>
+
+          <article class="cv-xp">
+            <div class="cv-top">
+              <h3>Chargé de Planning &amp; Régie Lumière</h3>
+              <span class="when">Juin – Août 2023</span>
+            </div>
+            <div class="org">TSF Saint-Denis · césure technique</div>
+            <ul>
+              <li>Gestion locative du parc matériel lumière et logistique des équipements pour des tournages professionnels de grande envergure.</li>
+              <li>Expertise pointue sur l'esthétique de l'éclairage, la physique de la lumière et les configurations de machinerie.</li>
+            </ul>
+          </article>
+
+          <article class="cv-xp">
+            <div class="cv-top">
+              <h3>Assistant de Production</h3>
+              <span class="when">Juin 2021 – Août 2022</span>
+            </div>
+            <div class="org">Alternance · BWATER (production · Montreuil)</div>
+            <ul>
+              <li>Suivi de production complet pour de grands groupes et marques françaises majeures — devis, facturation, bons de commande.</li>
+              <li>Organisation logistique de A à Z pour des shootings haut de gamme en studio et tournages complexes à l'étranger.</li>
+              <li>Gestion administrative rigoureuse — DPAE, contrats d'embauche, autorisations de tournage, imprévus de plateau.</li>
+            </ul>
+          </article>
+
+          <h2 class="cv-sec">Diplômes &amp; formations</h2>
+          <div class="cv-edu">
+            <div class="item">
+              <div class="cv-top">
+                <h3>Bachelor Monteur / Réalisateur</h3>
+                <span class="when">2024 – 2025</span>
+              </div>
+              <div class="org">CIFACOM Paris · Titre RNCP national de Monteur Cinéma</div>
+              <p>Validation sur Avid Media Composer. Spécialisation en grammaire de l'image, rythme et narration visuelle.</p>
+            </div>
+            <div class="item">
+              <div class="cv-top">
+                <h3>BTS Audiovisuel — option Gestion de Production</h3>
+                <span class="when">2020 – 2022</span>
+              </div>
+              <div class="org">CIFACOM Paris</div>
+              <p>Gestion budgétaire, législation des œuvres et logistique événementielle / audiovisuelle.</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div id="grain"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* =========================================================
+   CONFIG — remplace les liens Bunny Stream ici
+   ========================================================= */
+const HOME_VIDEO = "https://Portfoliooos.b-cdn.net/SHOWREEL.mp4"; // fichier original (Bunny Storage, non recompressé)
+
+const PROJECTS = [
+  { name:"Autoportrait",              embed:"674463/b9bd49e5-57d4-4ba5-9955-f25c741ee737" },
+  { name:"Sana Snitch",               embed:"674463/ce8a2a3e-affd-41b5-9a4a-dfea57aeca34" },
+  { name:"Quedal",                    embed:"674463/02ab56be-45f1-46c4-8ba0-5f7b9cc6e000" },
+  { name:"Mamie",                     embed:"674463/de30d359-fb70-4119-af3a-cfd373e142a0" },
+  { name:"Amour Possible",            embed:"674463/f7165128-f5d9-4b58-86f5-819039175d6b" },
+  { name:"Gadboy - Sonne", youtube:"p6jiXM1jnok" },
+  { name:"Technic",                   embed:"674463/6f314a1a-5c1f-4e93-9bd0-40e539abda5b" },
+];
+
+function bunnyEmbed(ref, full){
+  const params = full
+    ? "autoplay=true&preload=true&responsive=true"                                 // full player: sound + controls
+    : "autoplay=true&loop=true&muted=true&preload=true&responsive=true&controls=false"; // silent looping preview
+  return "https://iframe.mediadelivery.net/embed/" + ref + "?" + params;
+}
+function ytEmbed(id, full){
+  const params = full
+    ? "autoplay=1&rel=0&playsinline=1"                                             // full: real YouTube view + clickable logo
+    : "autoplay=1&mute=1&loop=1&playlist=" + id + "&controls=0&modestbranding=1&rel=0&playsinline=1&disablekb=1"; // silent loop preview
+  return "https://www.youtube.com/embed/" + id + "?" + params;
+}
+// unified preview / full URLs whatever the provider
+function previewUrl(p){ return p.youtube ? ytEmbed(p.youtube,false) : bunnyEmbed(p.embed,false); }
+function fullUrl(p){    return p.youtube ? ytEmbed(p.youtube,true)  : bunnyEmbed(p.embed,true);  }
+
+/* =========================================================
+   HLS helper
+   ========================================================= */
+const hlsRegistry = new WeakMap();
+function isHls(src){ return /\.m3u8(\?|$)/i.test(src); }
+function attachHls(video, src){
+  if(hlsRegistry.has(video)) return; // already attached
+  if(!isHls(src)){ // plain file (MP4 etc.) — no transcoding, served as-is
+    video.src = src;
+    hlsRegistry.set(video, {native:true});
+    return;
+  }
+  if(window.Hls && Hls.isSupported()){
+    // Chrome / Firefox / Edge — Media Source Extensions
+    const hls = new Hls({ maxBufferLength:18, capLevelToPlayerSize:true, preferManagedMediaSource:false });
+    hls.loadSource(src);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, ()=>{ video.play().catch(()=>{}); });
+    hlsRegistry.set(video, {hls});
+  } else if(video.canPlayType("application/vnd.apple.mpegurl")){
+    // Safari / iOS native HLS
+    video.src = src;
+    hlsRegistry.set(video, {native:true});
+  } else {
+    video.src = src; // last resort
+    hlsRegistry.set(video, {native:true});
+  }
+}
+function detachHls(video){
+  const r = hlsRegistry.get(video);
+  if(r && r.hls){ r.hls.destroy(); }
+  hlsRegistry.delete(video);
+  try{ video.removeAttribute("src"); video.load(); }catch(e){}
+}
+
+/* =========================================================
+   HOME VIDEO + ENTER ANIMATION
+   ========================================================= */
+const homeLayer = document.getElementById("homeLayer");
+const homeVid   = document.getElementById("homeVid");
+const heroBox   = document.getElementById("heroBox");
+const html      = document.documentElement;
+const body      = document.body;
+
+attachHls(homeVid, HOME_VIDEO);
+homeVid.muted = true;            // priority: muted autoplay always allowed
+homeVid.play().catch(()=>{});
+
+/* ---------- SOUND ---------- */
+const soundBtn = document.getElementById("sound");
+const ICON_ON  = '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a4 4 0 0 1 0 7"/><path d="M18.5 6a7 7 0 0 1 0 12"/></svg>';
+const ICON_OFF = '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M22 9l-6 6"/><path d="M16 9l6 6"/></svg>';
+let soundOn = false;
+
+function homeVolumeByScroll(){
+  // fade audio out across the first screen of scrolling
+  const t = Math.min(1, Math.max(0, (window.scrollY||0) / window.innerHeight));
+  if(soundOn && !homeVid.muted) homeVid.volume = 1 - t;
+}
+function setSound(on){
+  soundOn = on;
+  homeVid.muted = !on;
+  soundBtn.innerHTML = on ? ICON_ON : ICON_OFF;
+  soundBtn.setAttribute("aria-label", on ? "Couper le son" : "Activer le son");
+  if(on){ homeVolumeByScroll(); homeVid.play().catch(()=>{}); }
+}
+setSound(false); // start muted so the video autoplays reliably, with priority
+
+soundBtn.addEventListener("click",(e)=>{ e.stopPropagation(); setSound(!soundOn); });
+
+let entered = false;
+let dockRect = null;
+
+function computeDock(){
+  const r = heroBox.getBoundingClientRect();
+  // viewport coords at scrollTop 0 (we enter from the top)
+  dockRect = { top:r.top, left:r.left, width:r.width, height:r.height };
+}
+
+function dockHome(){
+  computeDock();
+  homeLayer.style.top    = dockRect.top + "px";
+  homeLayer.style.left   = dockRect.left + "px";
+  homeLayer.style.width  = dockRect.width + "px";
+  homeLayer.style.height = dockRect.height + "px";
+}
+
+function enter(){
+  if(entered) return;
+  entered = true;
+  homeLayer.classList.remove("intro");
+  html.classList.add("entered");
+  // unlock scroll
+  body.classList.remove("locked");
+  // shrink the still-playing video into the hero box
+  dockHome();
+  // after the transition, follow the page scroll so it reads as in-flow
+  setTimeout(()=>{ homeLayer.style.transition = "transform 120ms linear"; followScroll(); }, 1150);
+}
+
+function followScroll(){
+  // homeLayer top is fixed at dockRect.top (viewport at scroll 0);
+  // translate it up by scrollY so it glues to the hero box and scrolls away
+  const y = window.scrollY || window.pageYOffset || 0;
+  homeLayer.style.transform = "translateY(" + (-y) + "px)";
+}
+
+const enterBtn = document.getElementById("enter");
+
+// Clicking the docked showreel (after entering) replays it fullscreen.
+homeLayer.addEventListener("click", ()=>{
+  if(entered){ openPlayer({ name:"Showreel", src:HOME_VIDEO }); }
+});
+// Only the "Entrer" button triggers the shrink — and only once it has appeared.
+enterBtn.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  if(!entered && homeLayer.classList.contains("ready")){ setSound(true); enter(); }
+});
+window.addEventListener("keydown",(e)=>{
+  if(!entered && homeLayer.classList.contains("ready") && (e.key==="Enter"||e.key===" ")){ setSound(true); enter(); }
+});
+
+// Reveal the "Entrer" button + sound icon ONLY once the home video is genuinely playing,
+// then wait a comfortable beat so the video clearly leads.
+const MIN_INTRO = 3000;        // buttons never appear before this (video plays alone first)
+const AFTER_PLAY = 1000;       // ...and at least this long after the first real frame
+const INTRO_SAFETY = 10000;    // hard fallback so the user is never stuck
+const introStart = performance.now();
+let introArmed = false;
+function armIntro(){
+  if(introArmed || entered) return;
+  introArmed = true;
+  homeLayer.classList.add("ready");
+  soundBtn.classList.add("show");
+}
+let scheduled = false;
+function scheduleIntro(){
+  if(scheduled || introArmed) return;
+  scheduled = true;
+  const sinceLoad = performance.now() - introStart;
+  const wait = Math.max(AFTER_PLAY, MIN_INTRO - sinceLoad);
+  setTimeout(armIntro, wait);
+}
+// 'playing' = the video has the data and is actually rendering frames
+homeVid.addEventListener("playing", scheduleIntro);
+setTimeout(armIntro, INTRO_SAFETY);   // safety net only
+
+window.addEventListener("scroll", ()=>{
+  if(entered) followScroll();
+  homeVolumeByScroll();
+  if(window.scrollY > 40) body.classList.add("scrolled");
+}, {passive:true});
+
+window.addEventListener("resize", ()=>{ if(entered){ dockHome(); followScroll(); } });
+
+/* =========================================================
+   BUILD PROJECT SECTIONS
+   ========================================================= */
+const scroller = document.getElementById("scroller");
+const PLAY_ICON = '<svg viewBox="0 0 24 24"><path d="M7 5v14l12-7z"/></svg>';
+
+PROJECTS.forEach((p, i)=>{
+  const sec = document.createElement("section");
+  sec.className = "project";
+  sec.dataset.i = i;
+  const num = String(i+1).padStart(2,"0");
+  // Gadboy's clip blocks embedding (YT error 153) — show the thumbnail, click opens YouTube.
+  const media = p.youtube
+    ? `<img class="thumb" src="https://i.ytimg.com/vi/${p.youtube}/maxresdefault.jpg" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${p.youtube}/hqdefault.jpg'" alt="">`
+    : `<iframe data-embed="${previewUrl(p)}" loading="lazy" allow="autoplay; encrypted-media"></iframe>`;
+  const cta = p.youtube ? "Regarder sur YouTube" : "Voir le film";
+  const ytLink = p.youtube
+    ? `<a class="ytlink" href="https://youtu.be/${p.youtube}" target="_blank" rel="noopener" aria-label="Regarder « ${p.name} » sur YouTube"></a>`
+    : "";
+  sec.innerHTML = `
+    <span class="pindex">${num} / ${String(PROJECTS.length).padStart(2,"0")}</span>
+    <div class="frame" data-i="${i}" data-name="${p.name}">
+      ${media}
+      <div class="veil"></div>
+      <div class="play">${PLAY_ICON}</div>
+      <div class="caption">
+        <span class="pname display">${p.name}</span>
+        <span class="pnum">${cta}</span>
+      </div>
+      ${ytLink}
+    </div>`;
+  scroller.appendChild(sec);
+});
+
+const frames = [...document.querySelectorAll(".frame")];
+
+/* Lazy preview playback: only play the in-view project, pause/detach the rest.
+   (Embed frames autoplay/loop on their own — skip them.) */
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    const inView = e.isIntersecting && e.intersectionRatio > 0.35;
+    const v  = e.target.querySelector("video");
+    const fr = e.target.querySelector("iframe");
+    const p  = PROJECTS[+e.target.dataset.i];
+    if(v){
+      if(inView){ attachHls(v, p.src); v.play().catch(()=>{}); }
+      else { v.pause(); }
+    } else if(fr){
+      // load the silent looping preview only while in view; unload when far
+      if(inView){ if(!fr.getAttribute("src")) fr.setAttribute("src", fr.dataset.embed); }
+      else { if(fr.getAttribute("src")) fr.removeAttribute("src"); }
+    }
+  });
+},{ threshold:[0,0.35,0.6] });
+
+frames.forEach(f=>io.observe(f));
+
+/* =========================================================
+   FULLSCREEN PLAYER
+   ========================================================= */
+const player    = document.getElementById("player");
+const playerVid = document.getElementById("playerVid");
+const playerFrame = document.getElementById("playerFrame");
+const pTitle    = player.querySelector(".ptitle");
+const pLoading  = player.querySelector(".ploading");
+let lastFocus   = null;
+
+function openPlayer(p){
+  lastFocus = document.activeElement;
+  pTitle.textContent = p.name;
+  player.classList.add("open");
+  document.body.style.overflow = "hidden";
+  if(p.embed || p.youtube){
+    // Official provider player (Bunny or YouTube) — handles its own loading + sound
+    playerVid.style.display = "none";
+    playerFrame.style.display = "block";
+    pLoading.style.display = "none";
+    playerFrame.src = fullUrl(p);
+  } else {
+    playerFrame.style.display = "none";
+    playerFrame.src = "";          // ensure no embed audio lingers
+    playerVid.style.display = "block";
+    pLoading.style.display = "block";
+    attachHls(playerVid, p.src);
+    playerVid.currentTime = 0;
+    playerVid.muted = false;
+    playerVid.play().catch(()=>{});
+    playerVid.addEventListener("playing", ()=>{ pLoading.style.display="none"; }, {once:true});
+  }
+}
+function closePlayer(){
+  player.classList.remove("open");
+  document.body.style.overflow = "";
+  playerVid.pause();
+  setTimeout(()=>{
+    detachHls(playerVid);
+    playerFrame.src = "";          // stop embed playback
+    playerVid.style.display = "";
+    playerFrame.style.display = "";
+  }, 450);
+}
+
+frames.forEach(f=>{
+  f.addEventListener("click", ()=>{
+    const p = PROJECTS[+f.dataset.i];
+    if(p.youtube) return; // handled by the real <a> link overlay
+    openPlayer(p);
+  });
+});
+player.querySelector(".close").addEventListener("click", closePlayer);
+player.addEventListener("click",(e)=>{ if(e.target === player) closePlayer(); });
+window.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && player.classList.contains("open")) closePlayer(); });
+
+/* enter fullscreen sizing on first load */
+computeDock();
+
+/* =========================================================
+   CV OVERLAY (in-page, same tab)
+   ========================================================= */
+const cvPage  = document.getElementById("cvPage");
+const cvOpenL = document.getElementById("cvOpen");
+const cvCloseB= document.getElementById("cvClose");
+const cvPrintB= document.getElementById("cvPrint");
+
+function openCV(e){
+  if(e) e.preventDefault();
+  cvPage.classList.add("open");
+  cvPage.setAttribute("aria-hidden","false");
+  document.body.classList.add("cvopen");
+  document.body.style.overflow = "hidden";
+  cvPage.scrollTop = 0;
+}
+function closeCV(){
+  cvPage.classList.remove("open");
+  cvPage.setAttribute("aria-hidden","true");
+  document.body.classList.remove("cvopen");
+  document.body.style.overflow = "";
+}
+cvOpenL.addEventListener("click", openCV);
+cvCloseB.addEventListener("click", closeCV);
+cvPrintB.addEventListener("click", ()=> window.print());
+window.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && cvPage.classList.contains("open")) closeCV(); });
+</script>
+</body>
+</html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Quentin Le Henaff — Directeur artistique</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
