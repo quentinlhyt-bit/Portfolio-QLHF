@@ -544,13 +544,13 @@
         <span class="contact-name display">Quentin Le Henaff</span>
         <span class="contact-role label">Directeur Artistique — Paris</span>
         <div class="contact-lines">
-          <a class="contact-row" href="/cdn-cgi/l/email-protection#3f4e4a5a514b5651535a57597f58525e5653115c5052">
+          <a class="contact-row" id="contactEmail" href="#">
             <span class="contact-k label">Email</span>
-            <span class="contact-v"><span class="__cf_email__" data-cfemail="fc8d8999928895929099949abc9b919d9590d29f9391">[email&#160;protected]</span></span>
+            <span class="contact-v" id="contactEmailV">—</span>
           </a>
-          <a class="contact-row" href="tel:+33623801033">
+          <a class="contact-row" id="contactPhone" href="#">
             <span class="contact-k label">Téléphone</span>
-            <span class="contact-v">06 23 80 10 33</span>
+            <span class="contact-v" id="contactPhoneV">—</span>
           </a>
         </div>
       </div>
@@ -593,8 +593,8 @@
           <div class="cv-block">
             <div class="label">Contact</div>
             <div class="cv-contact">
-              <a href="/cdn-cgi/l/email-protection#aadbdfcfc4dec3c4c6cfc2cceacdc7cbc3c684c9c5c7"><span class="__cf_email__" data-cfemail="ff8e8a9a918b9691939a9799bf98929e9693d19c9092">[email&#160;protected]</span></a>
-              <a href="tel:+33623801033">06 23 80 10 33</a>
+              <a id="cvEmail" href="#">—</a>
+              <a id="cvPhone" href="#">—</a>
               <span class="muted">24 ans · Permis A &amp; B (véhiculé)</span>
             </div>
           </div>
@@ -741,7 +741,7 @@
 
   <div id="grain"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 /* =========================================================
    CONFIG — remplace les liens Bunny Stream ici
    ========================================================= */
@@ -829,9 +829,12 @@ let soundOn = false;
 
 const HOME_MAX_VOL = 0.4;   // musique d'accueil plus douce une fois entré
 function homeVolumeByScroll(){
-  // fade audio out across the first screen of scrolling
+  // fade audio out across the first screen of scrolling, then fully mute
   const t = Math.min(1, Math.max(0, (window.scrollY||0) / window.innerHeight));
-  if(soundOn && !homeVid.muted) homeVid.volume = (1 - t) * HOME_MAX_VOL;
+  if(soundOn && !anyOverlayOpen()){
+    if(t >= 0.85){ homeVid.muted = true; }
+    else { homeVid.muted = false; homeVid.volume = (1 - t/0.85) * HOME_MAX_VOL; }
+  }
 }
 function setSound(on){
   soundOn = on;
@@ -841,6 +844,25 @@ function setSound(on){
   if(on){ homeVolumeByScroll(); homeVid.play().catch(()=>{}); }
 }
 setSound(false); // start muted so the video autoplays reliably, with priority
+
+/* Centralise la coupure du son d'accueil : overlays + lecteur le mettent en pause,
+   on le reprend (si le son est actif) une fois tout fermé. */
+function anyOverlayOpen(){
+  return (typeof cvPage!=="undefined" && cvPage.classList.contains("open"))
+      || (typeof bookPage!=="undefined" && bookPage.classList.contains("open"))
+      || (typeof contactPage!=="undefined" && contactPage.classList.contains("open"))
+      || (typeof player!=="undefined" && player.classList.contains("open"));
+}
+function muteHomeAudio(){
+  homeVid.muted = true;
+  try{ homeVid.pause(); }catch(_){}
+}
+function restoreHomeAudio(){
+  if(anyOverlayOpen()) return;       // un autre overlay est encore ouvert
+  homeVid.muted = !soundOn;
+  if(soundOn){ homeVolumeByScroll(); homeVid.play().catch(()=>{}); }
+  else { homeVid.play().catch(()=>{}); } // l'image continue de tourner, sans son
+}
 
 soundBtn.addEventListener("click",(e)=>{ e.stopPropagation(); setSound(!soundOn); });
 
@@ -1063,12 +1085,14 @@ function openCV(e){
   document.body.classList.add("cvopen");
   document.body.style.overflow = "hidden";
   cvPage.scrollTop = 0;
+  muteHomeAudio();
 }
 function closeCV(){
   cvPage.classList.remove("open");
   cvPage.setAttribute("aria-hidden","true");
   document.body.classList.remove("cvopen");
   document.body.style.overflow = "";
+  restoreHomeAudio();
 }
 cvOpenL.addEventListener("click", openCV);
 cvCloseB.addEventListener("click", closeCV);
@@ -1084,15 +1108,34 @@ function openContact(e){
   contactPage.classList.add("open");
   contactPage.setAttribute("aria-hidden","false");
   document.body.style.overflow = "hidden";
+  muteHomeAudio();
 }
 function closeContact(){
   contactPage.classList.remove("open");
   contactPage.setAttribute("aria-hidden","true");
   document.body.style.overflow = "";
+  restoreHomeAudio();
 }
 contactOpenL.addEventListener("click", openContact);
 contactCloseB.addEventListener("click", closeContact);
 window.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && contactPage.classList.contains("open")) closeContact(); });
+
+/* Email & téléphone assemblés en JS (évite le masquage anti-spam de l'hébergeur) */
+(function(){
+  const user = "quentinlehf";
+  const domain = "gmail.com";
+  const email = user + "@" + domain;
+  const phoneDisplay = "06 23 80 10 33";
+  const phoneIntl = "+33623801033";
+  const eRow = document.getElementById("contactEmail");
+  const pRow = document.getElementById("contactPhone");
+  if(eRow){ eRow.href = "mailto:" + email; document.getElementById("contactEmailV").textContent = email; }
+  if(pRow){ pRow.href = "tel:" + phoneIntl; document.getElementById("contactPhoneV").textContent = phoneDisplay; }
+  const cvE = document.getElementById("cvEmail");
+  const cvP = document.getElementById("cvPhone");
+  if(cvE){ cvE.href = "mailto:" + email; cvE.textContent = email; }
+  if(cvP){ cvP.href = "tel:" + phoneIntl; cvP.textContent = phoneDisplay; }
+})();
 
 /* =========================================================
    BOOK PUB OVERLAY (in-page) — PDF.js rendered, smooth scroll
@@ -1114,6 +1157,7 @@ function openBook(e){
   document.body.classList.add("bookopen");
   document.body.style.overflow = "hidden";
   bookScroll.scrollTop = 0;
+  muteHomeAudio();
   buildBook();
 }
 function closeBook(){
@@ -1121,6 +1165,7 @@ function closeBook(){
   bookPage.setAttribute("aria-hidden","true");
   document.body.classList.remove("bookopen");
   document.body.style.overflow = "";
+  restoreHomeAudio();
 }
 bookOpenL.addEventListener("click", openBook);
 bookCloseB.addEventListener("click", closeBook);
