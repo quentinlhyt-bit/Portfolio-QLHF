@@ -269,6 +269,107 @@
     #cvPage .cv-top{flex-wrap:wrap;gap:4px}
     #cvPage .when{flex-basis:100%}
   }
+  /* ========== CONTACT OVERLAY (in-page) ========== */
+  #contactPage{
+    position:fixed;inset:0;z-index:118;
+    background:var(--bg);
+    opacity:0;visibility:hidden;
+    transition:opacity 480ms var(--ease);
+    display:flex;flex-direction:column;
+  }
+  #contactPage.open{opacity:1;visibility:visible}
+  .contact-toolbar{
+    flex:0 0 auto;display:flex;align-items:center;
+    padding:20px 28px;
+  }
+  .contact-toolbar .contact-back{
+    font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);
+    background:none;border:0;cursor:pointer;font-family:inherit;
+    display:inline-flex;align-items:center;gap:9px;transition:color 280ms var(--ease)}
+  .contact-toolbar .contact-back:hover{color:var(--fg)}
+  .contact-toolbar .contact-back .arrow{font-size:14px;letter-spacing:0}
+
+  .contact-inner{flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:0 28px 8vh}
+  .contact-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;max-width:680px;width:100%}
+  .contact-name{font-size:clamp(44px,8vw,104px);line-height:.9}
+  .contact-role{font-size:11px;letter-spacing:.3em}
+  .contact-lines{
+    margin-top:34px;width:100%;display:flex;flex-direction:column;
+    border-top:1px solid var(--line);
+  }
+  .contact-row{
+    display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+    padding:22px 4px;border-bottom:1px solid var(--line);
+    text-decoration:none;color:var(--fg);
+    transition:padding 360ms var(--ease), background 360ms var(--ease);
+  }
+  .contact-row:hover{padding-left:14px;padding-right:14px;background:rgba(242,240,236,.04)}
+  .contact-k{flex:0 0 auto;color:var(--dim)}
+  .contact-v{font-size:clamp(18px,2.4vw,28px);letter-spacing:.01em}
+  @media (max-width:600px){
+    .contact-row{flex-direction:column;align-items:flex-start;gap:5px;text-align:left}
+    .contact-inner{padding-bottom:14vh}
+  }
+
+  /* ========== BOOK PUB OVERLAY (in-page) ========== */
+  #bookPage{
+    position:fixed;inset:0;z-index:118;
+    background:var(--bg);
+    opacity:0;visibility:hidden;
+    transition:opacity 480ms var(--ease);
+    display:flex;flex-direction:column;
+  }
+  #bookPage.open{opacity:1;visibility:visible}
+  .book-toolbar{
+    flex:0 0 auto;
+    display:flex;align-items:center;justify-content:space-between;gap:18px;
+    padding:20px 28px;
+    border-bottom:1px solid var(--line);
+    background:rgba(0,0,0,.55);backdrop-filter:blur(8px);
+    position:relative;z-index:2;
+  }
+  .book-toolbar .book-back, .book-toolbar .book-dl{
+    font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);
+    background:none;border:0;cursor:pointer;font-family:inherit;text-decoration:none;
+    display:inline-flex;align-items:center;gap:9px;transition:color 280ms var(--ease),border-color 280ms var(--ease)}
+  .book-toolbar .book-back:hover, .book-toolbar .book-dl:hover{color:var(--fg)}
+  .book-toolbar .book-back .arrow{font-size:14px;letter-spacing:0}
+  .book-toolbar .book-dl{border:1px solid var(--line);padding:10px 16px;border-radius:999px}
+  .book-toolbar .book-dl:hover{border-color:var(--fg)}
+  .book-toolbar .book-title{display:none}
+  @media (min-width:760px){ .book-toolbar .book-title{display:block} }
+
+  .book-scroll{
+    flex:1 1 auto;overflow-y:auto;overflow-x:hidden;
+    scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+    scroll-snap-type:y proximity;
+    padding:38px 20px 80px;
+    display:flex;flex-direction:column;align-items:center;gap:32px;
+  }
+  .book-page{
+    width:min(92vw,1280px);aspect-ratio:16/9;
+    background:#0a0a0a;border:1px solid var(--line);
+    scroll-snap-align:center;
+    box-shadow:0 30px 80px -40px rgba(0,0,0,.9);
+    opacity:0;transform:translateY(26px);
+    transition:opacity 700ms var(--ease), transform 700ms var(--ease);
+    display:block;
+  }
+  .book-page.seen{opacity:1;transform:none}
+  .book-page canvas, .book-page img{width:100%;height:100%;display:block;object-fit:cover}
+  .book-loading{padding:80px 0;text-align:center}
+  .book-num{
+    position:fixed;right:26px;bottom:22px;z-index:3;
+    font-size:11px;letter-spacing:.24em;color:var(--dim);
+    background:rgba(0,0,0,.5);padding:7px 13px;border-radius:999px;border:1px solid var(--line);
+    backdrop-filter:blur(6px);pointer-events:none;
+  }
+  @media (max-width:760px){
+    .book-toolbar{padding:15px 18px}
+    .book-scroll{padding:24px 14px 70px;gap:20px}
+    .book-page{width:94vw}
+  }
+
   /* ========== CV OVERLAY (in-page) ========== */
   #cvPage{
     --faint:#54524e;
@@ -394,8 +495,9 @@
       Directeur artistique<br />
       Paris, FR
       <span class="links">
+        <a href="#book" id="bookOpen">Book Pub</a>
         <a href="#cv" id="cvOpen">CV</a>
-        <a href="/cdn-cgi/l/email-protection#532226363d273a3d3f363b3513343e323a3f7d303c3e">Contact</a>
+        <a href="#contact" id="contactOpen">Contact</a>
       </span>
     </div>
   </header>
@@ -432,6 +534,43 @@
     </button>
   </div>
 
+  <!-- ===== CONTACT OVERLAY (same page) ===== -->
+  <div id="contactPage" aria-hidden="true">
+    <div class="contact-toolbar">
+      <button class="contact-back" id="contactClose"><span class="arrow">←</span> Portfolio</button>
+    </div>
+    <div class="contact-inner">
+      <div class="contact-card">
+        <span class="contact-name display">Quentin Le Henaff</span>
+        <span class="contact-role label">Directeur Artistique — Paris</span>
+        <div class="contact-lines">
+          <a class="contact-row" href="/cdn-cgi/l/email-protection#3f4e4a5a514b5651535a57597f58525e5653115c5052">
+            <span class="contact-k label">Email</span>
+            <span class="contact-v"><span class="__cf_email__" data-cfemail="fc8d8999928895929099949abc9b919d9590d29f9391">[email&#160;protected]</span></span>
+          </a>
+          <a class="contact-row" href="tel:+33623801033">
+            <span class="contact-k label">Téléphone</span>
+            <span class="contact-v">06 23 80 10 33</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BOOK PUB OVERLAY (same page) ===== -->
+  <div id="bookPage" aria-hidden="true">
+    <div class="book-toolbar">
+      <button class="book-back" id="bookClose"><span class="arrow">←</span> Portfolio</button>
+      <span class="book-title label">Book — Direction Artistique</span>
+      <a class="book-dl" href="book.pdf" download="Book_Quentin_Le_Henaff.pdf">Télécharger</a>
+    </div>
+    <div class="book-scroll" id="bookScroll">
+      <div class="book-loading" id="bookLoading">
+        <span class="label">Chargement du book…</span>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== CV OVERLAY (same page, no extra file) ===== -->
   <div id="cvPage" aria-hidden="true">
     <div class="cv-inner">
@@ -454,7 +593,7 @@
           <div class="cv-block">
             <div class="label">Contact</div>
             <div class="cv-contact">
-              <a href="/cdn-cgi/l/email-protection#5e2f2b3b302a3730323b36381e39333f3732703d3133"><span class="__cf_email__" data-cfemail="ff8e8a9a918b9691939a9799bf98929e9693d19c9092">[email&#160;protected]</span></a>
+              <a href="/cdn-cgi/l/email-protection#aadbdfcfc4dec3c4c6cfc2cceacdc7cbc3c684c9c5c7"><span class="__cf_email__" data-cfemail="ff8e8a9a918b9691939a9799bf98929e9693d19c9092">[email&#160;protected]</span></a>
               <a href="tel:+33623801033">06 23 80 10 33</a>
               <span class="muted">24 ans · Permis A &amp; B (véhiculé)</span>
             </div>
@@ -688,10 +827,11 @@ const ICON_ON  = '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><pat
 const ICON_OFF = '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M22 9l-6 6"/><path d="M16 9l6 6"/></svg>';
 let soundOn = false;
 
+const HOME_MAX_VOL = 0.4;   // musique d'accueil plus douce une fois entré
 function homeVolumeByScroll(){
   // fade audio out across the first screen of scrolling
   const t = Math.min(1, Math.max(0, (window.scrollY||0) / window.innerHeight));
-  if(soundOn && !homeVid.muted) homeVid.volume = 1 - t;
+  if(soundOn && !homeVid.muted) homeVid.volume = (1 - t) * HOME_MAX_VOL;
 }
 function setSound(on){
   soundOn = on;
@@ -861,6 +1001,7 @@ function openPlayer(p){
   pTitle.textContent = p.name;
   player.classList.add("open");
   document.body.style.overflow = "hidden";
+  homeVid.muted = true;          // couper la musique d'accueil pendant la lecture
   if(p.embed || p.youtube){
     // Official provider player (Bunny or YouTube) — handles its own loading + sound
     playerVid.style.display = "none";
@@ -883,6 +1024,8 @@ function closePlayer(){
   player.classList.remove("open");
   document.body.style.overflow = "";
   playerVid.pause();
+  homeVid.muted = !soundOn;       // reprendre la musique d'accueil si le son est actif
+  if(soundOn){ homeVolumeByScroll(); homeVid.play().catch(()=>{}); }
   setTimeout(()=>{
     detachHls(playerVid);
     playerFrame.src = "";          // stop embed playback
@@ -931,6 +1074,123 @@ cvOpenL.addEventListener("click", openCV);
 cvCloseB.addEventListener("click", closeCV);
 cvPrintB.addEventListener("click", ()=> window.print());
 window.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && cvPage.classList.contains("open")) closeCV(); });
+
+/* ---- Contact: ouvre une page simple (email + téléphone) ---- */
+const contactPage  = document.getElementById("contactPage");
+const contactOpenL = document.getElementById("contactOpen");
+const contactCloseB= document.getElementById("contactClose");
+function openContact(e){
+  if(e) e.preventDefault();
+  contactPage.classList.add("open");
+  contactPage.setAttribute("aria-hidden","false");
+  document.body.style.overflow = "hidden";
+}
+function closeContact(){
+  contactPage.classList.remove("open");
+  contactPage.setAttribute("aria-hidden","true");
+  document.body.style.overflow = "";
+}
+contactOpenL.addEventListener("click", openContact);
+contactCloseB.addEventListener("click", closeContact);
+window.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && contactPage.classList.contains("open")) closeContact(); });
+
+/* =========================================================
+   BOOK PUB OVERLAY (in-page) — PDF.js rendered, smooth scroll
+   ========================================================= */
+const bookPage   = document.getElementById("bookPage");
+const bookOpenL  = document.getElementById("bookOpen");
+const bookCloseB = document.getElementById("bookClose");
+const bookScroll = document.getElementById("bookScroll");
+const bookLoading= document.getElementById("bookLoading");
+const BOOK_PDF   = "book.pdf";
+const BOOK_PAGES = 7;
+let bookBuilt = false;
+let bookNumEl = null;
+
+function openBook(e){
+  if(e) e.preventDefault();
+  bookPage.classList.add("open");
+  bookPage.setAttribute("aria-hidden","false");
+  document.body.classList.add("bookopen");
+  document.body.style.overflow = "hidden";
+  bookScroll.scrollTop = 0;
+  buildBook();
+}
+function closeBook(){
+  bookPage.classList.remove("open");
+  bookPage.setAttribute("aria-hidden","true");
+  document.body.classList.remove("bookopen");
+  document.body.style.overflow = "";
+}
+bookOpenL.addEventListener("click", openBook);
+bookCloseB.addEventListener("click", closeBook);
+window.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && bookPage.classList.contains("open")) closeBook(); });
+
+async function buildBook(){
+  if(bookBuilt) return;
+  bookBuilt = true;
+  try{
+    const pdfjs = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs");
+    pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs";
+    const pdf = await pdfjs.getDocument(BOOK_PDF).promise;
+    bookLoading.remove();
+
+    // page-number indicator
+    bookNumEl = document.createElement("div");
+    bookNumEl.className = "book-num";
+    bookNumEl.textContent = "01 / " + String(pdf.numPages).padStart(2,"0");
+    bookPage.appendChild(bookNumEl);
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const seen = new IntersectionObserver((ents)=>{
+      ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add("seen"); } });
+    },{ threshold:0.12 });
+
+    // page counter: pick the most-visible page inside the scroll container
+    const totalStr = String(pdf.numPages).padStart(2,"0");
+    function updateBookNum(){
+      if(!bookNumEl) return;
+      const vh = bookScroll.clientHeight;
+      const top = bookScroll.getBoundingClientRect().top;
+      let best = 1, bestVis = -1;
+      bookScroll.querySelectorAll(".book-page").forEach(el=>{
+        const r = el.getBoundingClientRect();
+        const vis = Math.min(r.bottom, top+vh) - Math.max(r.top, top);
+        if(vis > bestVis){ bestVis = vis; best = +el.dataset.n; }
+      });
+      bookNumEl.textContent = String(best).padStart(2,"0") + " / " + totalStr;
+    }
+    bookScroll.addEventListener("scroll", updateBookNum, {passive:true});
+
+    for(let i=1;i<=pdf.numPages;i++){
+      const holder = document.createElement("div");
+      holder.className = "book-page";
+      holder.dataset.n = i;
+      bookScroll.appendChild(holder);
+      seen.observe(holder);
+      // render this page
+      const page = await pdf.getPage(i);
+      const vp1 = page.getViewport({scale:1});
+      const targetW = Math.min(1280, Math.round(window.innerWidth*0.92));
+      const scale = (targetW / vp1.width) * dpr;
+      const vp = page.getViewport({scale});
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(vp.width);
+      canvas.height = Math.round(vp.height);
+      holder.appendChild(canvas);
+      await page.render({ canvasContext:canvas.getContext("2d"), viewport:vp }).promise;
+    }
+    updateBookNum();
+  }catch(err){
+    // graceful fallback: native PDF embed
+    bookBuilt = false;
+    if(bookLoading) bookLoading.remove();
+    const frame = document.createElement("iframe");
+    frame.src = BOOK_PDF;
+    frame.style.cssText = "width:min(92vw,1280px);height:80vh;border:1px solid var(--line);background:#0a0a0a";
+    bookScroll.appendChild(frame);
+  }
+}
 </script>
 </body>
 </html>
