@@ -908,6 +908,34 @@ function followScroll(){
   homeLayer.style.transform = "translateY(" + (-y) + "px)";
 }
 
+/* The showreel is position:fixed and translated away on scroll. Browsers (esp. mobile)
+   pause & release the decoder for off-screen videos, leaving a black frame on return.
+   These guards keep it alive and force a repaint when it comes back into view. */
+let _belowHero = false;
+function showreelInView(){
+  return (window.scrollY || 0) < window.innerHeight * 0.92;
+}
+function reviveShowreel(){
+  if(!entered || anyOverlayOpen()) return;
+  if(homeVid.paused){ homeVid.play().catch(()=>{}); }
+  // nudge the compositor so a dropped frame repaints immediately
+  homeLayer.style.willChange = "transform";
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ homeLayer.style.willChange = "auto"; }));
+}
+function keepShowreelAlive(){
+  if(!entered) return;
+  const nowBelow = !showreelInView();
+  if(_belowHero && !nowBelow) reviveShowreel();   // just scrolled back up into view
+  _belowHero = nowBelow;
+}
+// auto-recover if the browser pauses the showreel while it should be running
+homeVid.addEventListener("pause", ()=>{
+  if(entered && !anyOverlayOpen() && showreelInView()){ homeVid.play().catch(()=>{}); }
+});
+// resume when returning to the tab or via back/forward cache
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) reviveShowreel(); });
+window.addEventListener("pageshow", reviveShowreel);
+
 const enterBtn = document.getElementById("enter");
 
 // Clicking the docked showreel (after entering) replays it fullscreen.
@@ -951,6 +979,7 @@ setTimeout(armIntro, INTRO_SAFETY);   // safety net only
 window.addEventListener("scroll", ()=>{
   if(entered) followScroll();
   homeVolumeByScroll();
+  keepShowreelAlive();
   if(window.scrollY > 40) body.classList.add("scrolled");
 }, {passive:true});
 
