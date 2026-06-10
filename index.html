@@ -398,6 +398,14 @@
   #cvPage .cv-masthead h1{font-size:clamp(50px,8vw,118px)}
   #cvPage .cv-role{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);text-align:right;line-height:2}
   #cvPage .cv-role .now{color:var(--fg)}
+  #cvPage .cv-avail{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    margin:-26px 0 40px;
+    font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  }
+  #cvPage .cv-avail .dot{width:8px;height:8px;border-radius:50%;background:var(--fg);flex:0 0 auto}
+  #cvPage .cv-avail b{color:var(--fg);font-weight:600;letter-spacing:.16em}
+  #cvPage .cv-avail span{color:var(--dim)}
 
   #cvPage .cv-grid{display:grid;grid-template-columns:300px 1fr;gap:0}
   #cvPage .cv-rail{padding-right:42px;border-right:1px solid var(--line)}
@@ -465,6 +473,10 @@
     body.cvopen #cvPage{font-size:10.4px;line-height:1.4}
     body.cvopen #cvPage .cv-masthead{border-top-color:#111;margin-bottom:18px;padding-top:14px}
     body.cvopen #cvPage .cv-masthead h1{font-size:46px;color:#111}
+    body.cvopen #cvPage .cv-avail{margin:-10px 0 16px}
+    body.cvopen #cvPage .cv-avail .dot{background:#111}
+    body.cvopen #cvPage .cv-avail b{color:#111 !important}
+    body.cvopen #cvPage .cv-avail span{color:#444 !important}
     body.cvopen #cvPage .cv-role, body.cvopen #cvPage .label, body.cvopen #cvPage .when,
     body.cvopen #cvPage .org, body.cvopen #cvPage .cv-contact .muted, body.cvopen #cvPage .cv-skillgroup h4{color:#444 !important}
     body.cvopen #cvPage .cv-role .now{color:#111 !important}
@@ -583,11 +595,17 @@
       <header class="cv-masthead">
         <h1 class="display">Quentin<br />Le Henaff</h1>
         <div class="cv-role">
-          <span class="now">Direction artistique — en alternance</span><br />
-          Vidéaste — montage, image, réalisation<br />
+          <span class="now">Vidéaste · Direction artistique</span><br />
+          Montage — Image — Réalisation<br />
           Le Pré-Saint-Gervais (93)
         </div>
       </header>
+
+      <div class="cv-avail">
+        <span class="dot"></span>
+        <b>Recherche une alternance</b>
+        <span>Direction artistique · rentrée septembre 2026</span>
+      </div>
 
       <div class="cv-grid">
         <aside class="cv-rail">
@@ -666,7 +684,7 @@
 
         <main class="cv-body">
           <p class="cv-profile">
-            Vidéaste polyvalent et créatif. <span class="lead">Du cadrage au montage, de l'étalonnage à la photographie, je porte chaque projet de l'idée à l'image finale. Je travaille aujourd'hui en freelance et je me forme à la direction artistique : je recherche une alternance en Master pour construire cette évolution autour de l'image et du film publicitaire.</span>
+            Vidéaste polyvalent et créatif. <span class="lead">Du cadrage au montage, de l'étalonnage à la photographie, je porte chaque projet de l'idée à l'image finale. Aujourd'hui en freelance, je me forme à la direction artistique autour de l'image et du film publicitaire.</span>
           </p>
 
           <h2 class="cv-sec">Expériences</h2>
