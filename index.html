@@ -456,6 +456,7 @@
   /* ---- PRINT: only the CV, black on white ---- */
   @page{size:A4;margin:14mm}
   @media print{
+    html, body, body.cvopen{background:#fff !important}
     body.cvopen > *:not(#cvPage){display:none !important}
     body.cvopen #cvPage{position:static !important;opacity:1 !important;visibility:visible !important;overflow:visible !important;background:#fff !important;color:#111 !important}
     body.cvopen #cvPage .cv-inner{padding:0;max-width:none}
